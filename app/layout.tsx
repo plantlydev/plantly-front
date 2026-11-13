@@ -5,6 +5,7 @@ import Link from "next/link";
 import HeaderNav from "@/components/HeaderNav";
 import PopupChrome from "@/components/PopupChrome";
 import SessionProvider from "@/components/SessionProvider";
+import SocialLoginLanding from "@/components/SocialLoginLanding";
 import { POPUP_WINDOW_NAME } from "@/lib/popup";
 import "./globals.css";
 
@@ -84,6 +85,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <PopupChrome />
 
         <SessionProvider>
+          {/* 소셜 로그인 뒤 `/` 에 도착하면 출발 전 화면으로 보낸다. 그리는 것은 없다. */}
+          <SocialLoginLanding />
           <div className="mx-auto flex min-h-screen w-full max-w-[1180px] flex-col bg-white">
             {/* .site-header 는 팝업 창에서 이 줄을 통째로 감추는 표식이다(globals.css). */}
             <header className="site-header flex items-center gap-6 border-b border-line px-4 py-3.5 sm:px-[30px]">

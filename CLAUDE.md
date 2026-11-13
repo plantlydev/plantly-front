@@ -56,12 +56,32 @@ npm run dev        # http://localhost:3000
 
 ### 인증 / CSRF
 
+**운영은 네이버 소셜 로그인 전용이다.** 자체(이메일·비밀번호) 로그인·회원가입 API 는 백엔드가
+`app.auth.local-login-enabled=false`(운영 기본값)일 때 404 로 막는다. 로컬은 시드 계정으로 개발하려고 켜 둔다.
+
 | 동작 | 요청 |
 | --- | --- |
-| 회원가입 | `POST /api/v1/users/sign-up` |
-| 로그인 | `POST /api/v1/auth/login` `{ email, password }` |
+| 네이버 로그인 시작 | 브라우저를 `/oauth2/authorization/naver` 로 **페이지째 이동**(fetch 아님) |
+| 소셜 가입 대기 조회 | `GET /api/v1/auth/social/pending` (없거나 10분 지나면 401 `SIGNUP_SESSION_EXPIRED`) |
+| 소셜 가입 | `POST /api/v1/auth/social/signup` `{ agreements, name? }` → `{ loginUrl }` |
 | 로그아웃 | `POST /api/v1/auth/logout` |
-| 내 프로필 | `GET /api/v1/users/me` |
+| 내 프로필 | `GET /api/v1/users/me` (소셜 가입자는 `phone`·`nickname` 이 null) |
+| (로컬 전용) 로그인 | `POST /api/v1/auth/login` `{ email, password }` |
+| (로컬 전용) 회원가입 | `POST /api/v1/users/sign-up` |
+
+**네이버 로그인 흐름** (`lib/socialLogin.ts` 주석에 자세히):
+
+1. 로그인 화면의 [네이버로 시작하기] → `next` 를 sessionStorage 에 적고 `/oauth2/authorization/naver` 로 이동.
+   `/oauth2/**`, `/login/oauth2/**` 는 `next.config.ts` 가 백엔드로 프록시한다(302·Set-Cookie 그대로 통과).
+2. 네이버를 다녀온 콜백을 백엔드가 판정해 프론트 화면으로 302 한다.
+   - 연결된 회원 → `/` (로그인 완료). `SocialLoginLanding` 이 적어 둔 `next` 로 보낸다.
+   - 처음 온 사람 → `/signup/social` (약관 동의 → 가입 → 응답 `loginUrl` 로 이동하면 바로 로그인돼 1번 끝과 같다)
+   - 그 밖 → `/login?error={ACCOUNT_SUSPENDED|EMAIL_IN_USE|SOCIAL_LOGIN_FAILED}` (가입 화면 만료는 `SIGNUP_SESSION_EXPIRED`)
+3. 로컬에서 네이버까지 실제로 돌리려면 백엔드에 `NAVER_CLIENT_ID`/`NAVER_CLIENT_SECRET` 환경변수가 있어야 하고,
+   네이버 개발자센터 Callback URL 에 `http://localhost:3000/login/oauth2/code/naver` 가 등록돼 있어야 한다.
+
+**이메일 로그인 폼은 로컬 개발 전용이다.** `.env.local` 에 `NEXT_PUBLIC_LOCAL_LOGIN=true` 가 있을 때만 로그인 화면에
+보인다(빌드할 때 값이 박힌다 — 운영 빌드에는 넣지 않는다. `.env*` 는 gitignore 라 PC 마다 직접 만든다).
 
 - 비밀번호는 **10~60자 + 특수문자 1개 이상**(백엔드 검증). 시드 계정 공통 비밀번호는 `Password1!`.
 - remember-me 는 백엔드에서 껐다(첫 배포는 소셜 로그인 전용). 로그인 유지는 세션 유휴 만료 1일이 맡고,
@@ -321,7 +341,10 @@ app/companies/page.tsx   기업 목록/검색(공개) — 조건이 주소에 �
 app/companies/[id]/page.tsx  기업 상세(공개) — 데이터 + 공개 전용 자리(문의·좋아요·공유) (아래 "기업 상세 화면")
 app/companies/[id]/manage/page.tsx  기업 상세(소유자) — 같은 몸통 + 소유자 전용 요소 (아래 "소유자 기업 상세 화면")
 components/CompanyDetailView.tsx  상세 화면 몸통 — 남색 히어로 · 섹션 탭 · 본문 2단. 공개·소유자 상세가 자리(slot)만 바꿔 함께 쓴다
-app/login/page.tsx       로그인. 성공하면 ?next= 로 돌아간다(오픈 리다이렉트 방어는 safeNext)
+app/login/page.tsx       로그인. 네이버 버튼 + ?error= 안내 + (로컬 전용) 이메일 폼. 성공하면 ?next= 로 돌아간다
+app/signup/social/page.tsx  소셜 가입(약관 동의). 가입 대기 정보가 없으면 로그인 화면으로 보낸다
+lib/socialLogin.ts       소셜 로그인 시작·next 기억(sessionStorage)·오류 문구·safeNext(오픈 리다이렉트 방어)
+components/SocialLoginLanding.tsx  소셜 로그인 뒤 `/` 에 도착하면 적어 둔 next 로 보낸다. layout 이 한 번 둔다
 app/globals.css          디자인 토큰(@theme) + 컴포넌트 클래스(@layer components)
 components/Corners.tsx   청사진 모서리 마크
 components/icons.tsx     디자인에 쓰인 SVG 8개
@@ -341,7 +364,7 @@ components/Placeholders.tsx  "데이터 준비 중" 자리표시자
 components/SessionProvider.tsx  로그인 상태를 화면 전체가 나눠 쓰는 컨텍스트. layout 이 감싼다
 components/HeaderNav.tsx  헤더 메뉴 + 로그인/로그아웃 (세션에 따라 바뀌어 클라이언트 컴포넌트)
 lib/api.ts               fetch 래퍼 — 세션 쿠키 + CSRF + 봉투 처리
-lib/auth.ts              로그인·로그아웃·내 프로필
+lib/auth.ts              로그인·로그아웃·내 프로필·소셜 가입 대기 조회·소셜 가입
 components/CompanyList.tsx      목록/검색 화면 본문(데이터를 읽으므로 클라이언트). page.tsx 는 Suspense 껍데기다
 components/CompanySearchForm.tsx  통합 검색어 + 접이식 고급검색 9칸 (한 form 으로 함께 제출)
 components/CompanyFacets.tsx    분류(트리)·업종·인증 패싯 체크박스. 누르는 즉시 반영

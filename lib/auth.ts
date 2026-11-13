@@ -8,7 +8,14 @@
  */
 
 import { api, request, resetCsrf } from "@/lib/api";
-import type { LoginRequest, LoginResponse, ProfileResponse } from "@/types/api";
+import type {
+  LoginRequest,
+  LoginResponse,
+  PendingSocialSignup,
+  ProfileResponse,
+  SocialSignupRequest,
+  SocialSignupResponse,
+} from "@/types/api";
 
 /**
  * 로그인. 성공하면 세션 쿠키(JSESSIONID)가 심긴다. remember-me 는 서버에서 껐으므로
@@ -49,4 +56,21 @@ export async function logout(): Promise<void> {
  */
 export function getMe(signal?: AbortSignal): Promise<ProfileResponse> {
   return api.get<ProfileResponse>("/users/me", undefined, signal);
+}
+
+/**
+ * 소셜 가입 대기 정보(가입 화면이 그릴 이메일·이름·동의 항목).
+ * 근거는 로그인이 아니라 세션의 가입 대기 정보라, 없거나 10분이 지났으면 401 `SIGNUP_SESSION_EXPIRED` 다 —
+ * 이 호출의 401 은 "로그인 필요"가 아니라 "소셜 로그인부터 다시"라는 뜻이다.
+ */
+export function getPendingSocialSignup(signal?: AbortSignal): Promise<PendingSocialSignup> {
+  return api.get<PendingSocialSignup>("/auth/social/pending", undefined, signal);
+}
+
+/**
+ * 소셜 가입. 회원·소셜 연결·동의 기록을 만들고 **로그인은 하지 않는다** — 응답의 `loginUrl` 로
+ * 브라우저를 이동시키면 제공자를 바로 통과해 로그인된 채 돌아온다(lib/socialLogin.ts).
+ */
+export function socialSignup(body: SocialSignupRequest): Promise<SocialSignupResponse> {
+  return api.post<SocialSignupResponse>("/auth/social/signup", body);
 }

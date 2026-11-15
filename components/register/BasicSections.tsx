@@ -12,6 +12,7 @@ import {
   LocalPreview,
   ProgressBar,
   Section,
+  StoredImage,
   TextField,
   uploadRuleLabel,
   useDropZone,
@@ -224,8 +225,7 @@ export function BrandingSection({ form, update, errors, masters }: SectionProps)
           {logo.input}
           {form.logoUrl && logo.state.status === "idle" ? (
             <div className="relative h-[150px] overflow-hidden rounded-[10px] border border-line">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={form.logoUrl} alt="로고 미리보기" className="size-full object-cover" />
+              <StoredImage url={form.logoUrl} alt="로고 미리보기" className="size-full object-cover" />
               <ImageActions onReplace={logo.pick} onRemove={() => update({ logoUrl: null })} />
             </div>
           ) : logo.state.status === "up" ? (
@@ -265,8 +265,7 @@ export function BrandingSection({ form, update, errors, masters }: SectionProps)
           {cover.input}
           {form.coverImageUrl && cover.state.status === "idle" ? (
             <div className="relative h-[150px] overflow-hidden rounded-[10px] border border-line">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={form.coverImageUrl} alt="커버 미리보기" className="size-full object-cover" />
+              <StoredImage url={form.coverImageUrl} alt="커버 미리보기" className="size-full object-cover" />
               <ImageActions onReplace={cover.pick} onRemove={() => update({ coverImageUrl: null })} />
             </div>
           ) : cover.state.status === "up" ? (

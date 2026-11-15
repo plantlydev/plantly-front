@@ -17,6 +17,7 @@ import {
   checkFile,
   LocalPreview,
   ProgressBar,
+  StoredImage,
   uploadErrorMessage,
   useDropZone,
 } from "@/components/register/parts";
@@ -154,12 +155,7 @@ export default function ImageList({
                 setOverIndex(-1);
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={url}
-                alt={`${label} ${index + 1}`}
-                draggable={false}
-              />
+              <StoredImage url={url} alt={`${label} ${index + 1}`} draggable={false} />
               <span className="no">{index + 1}</span>
               <button
                 type="button"

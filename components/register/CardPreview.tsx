@@ -6,9 +6,13 @@
  * 카드는 디자인이 그린 "메인 · 검색 목록 카드"의 모양이다 — 커버가 없으면 브랜드 컬러 바탕에
  * 기업명 두 글자를 크게 깔고, 로고가 없으면 같은 두 글자 배지를 쓴다. 바탕색이 회사 지정색(런타임 값)이라
  * 스포트라이트 카드처럼 인라인 style 로만 넘긴다(그 밖의 색은 토큰).
+ *
+ * 커버·로고를 불러오지 못하면(useImageFailed) "없을 때"와 같은 모습으로 그린다 — 실제 카드(Cover·Logo)와 같은 규칙이다.
+ * 불러오지 못했다는 안내는 왼쪽 브랜딩 칸(StoredImage)이 한다.
  */
 
 import { CheckIcon, PinIcon } from "@/components/icons";
+import { useImageFailed } from "@/lib/useImageFailed";
 import {
   DEFAULT_BRAND_COLOR,
   hasReference,
@@ -37,6 +41,8 @@ export function PreviewCard({ form, masters }: { form: RegisterForm; masters: Re
     .filter((value): value is string => !!value && value.trim() !== "")
     .slice(0, 3);
   const place = shortAddress(form.roadAddress);
+  const cover = useImageFailed(form.coverImageUrl);
+  const logo = useImageFailed(form.logoUrl);
 
   return (
     <div className="blueprint flex flex-col bg-white">
@@ -48,15 +54,20 @@ export function PreviewCard({ form, masters }: { form: RegisterForm; masters: Re
           >
             {mono}
           </span>
-          {form.coverImageUrl && (
+          {form.coverImageUrl && !cover.failed && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={form.coverImageUrl} alt="" className="absolute inset-0 size-full object-cover" />
+            <img
+              {...cover.imgProps}
+              src={form.coverImageUrl}
+              alt=""
+              className="absolute inset-0 size-full object-cover"
+            />
           )}
         </div>
         <div className="absolute -bottom-6 left-4 grid size-[54px] place-items-center rounded-lg border border-line bg-white">
-          {form.logoUrl ? (
+          {form.logoUrl && !logo.failed ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={form.logoUrl} alt="" className="size-[42px] rounded-md object-cover" />
+            <img {...logo.imgProps} src={form.logoUrl} alt="" className="size-[42px] rounded-md object-cover" />
           ) : (
             <span
               className="grid size-[42px] place-items-center rounded-md text-[15px] font-bold text-white"

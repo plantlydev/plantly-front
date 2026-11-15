@@ -13,6 +13,7 @@ import {
   TRL_LEVEL_LABEL,
 } from "@/lib/labels";
 import type { CompanyPublicResponse } from "@/types/api";
+import { useImageFailed } from "@/lib/useImageFailed";
 
 /**
  * 소개 영상 카드를 그릴지. 지금은 끈다.
@@ -131,20 +132,7 @@ export default function CompanyDetailView({
       {/* ── 히어로 ────────────────────────────────────────────────────
           디자인 원본의 남색 판. 커버 사진은 오른쪽에서 흐릿하게 깔리고 왼쪽으로 갈수록 남색에 묻는다. */}
       <section className="relative overflow-hidden bg-brand-900 text-white">
-        {company.coverImageUrl && (
-          <div
-            aria-hidden
-            className="absolute inset-y-0 right-0 hidden w-[430px] opacity-[0.34] lg:block"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={company.coverImageUrl}
-              alt=""
-              className="size-full object-cover grayscale contrast-[1.05]"
-            />
-            <div className="absolute inset-0 bg-linear-to-r from-brand-900 via-45% via-brand-900/50 to-brand-900/75" />
-          </div>
-        )}
+        <HeroCover url={company.coverImageUrl} />
 
         {/* 현재 위치 표시라 한 줄을 넘기지 않는다 — 긴 회사명은 여기서 자른다(제목에 온전히 있다). */}
         <nav className="relative flex items-center gap-1.5 px-4 pt-4 text-xs text-white/50 sm:px-[30px]">
@@ -435,10 +423,7 @@ export default function CompanyDetailView({
               */}
               <div className="flex flex-col">
                 {company.galleryImages.map((image) => (
-                  <figure key={image.imageUrl} className="gshot">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={image.imageUrl} alt="" loading="lazy" />
-                  </figure>
+                  <GalleryShot key={image.imageUrl} url={image.imageUrl} />
                 ))}
               </div>
             </section>
@@ -745,4 +730,37 @@ export async function copyLink(url: string) {
     window.alert(`링크를 복사하지 못했습니다. 아래 주소를 직접 복사해 주세요.
 ${url}`);
   }
+}
+
+/**
+ * 히어로 오른쪽에 흐릿하게 깔리는 커버 사진. 장식이라 없거나 불러오지 못하면 통째로 그리지 않는다 —
+ * 남색 판만 남는다(사진이 없는 회사와 같은 모습).
+ */
+function HeroCover({ url }: { url: string | null }) {
+  const { failed, imgProps } = useImageFailed(url);
+  if (!url || failed) return null;
+
+  return (
+    <div aria-hidden className="absolute inset-y-0 right-0 hidden w-[430px] opacity-[0.34] lg:block">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img {...imgProps} src={url} alt="" className="size-full object-cover grayscale contrast-[1.05]" />
+      <div className="absolute inset-0 bg-linear-to-r from-brand-900 via-45% via-brand-900/50 to-brand-900/75" />
+    </div>
+  );
+}
+
+/**
+ * 갤러리 한 장. 불러오지 못한 사진은 띠에서 뺀다 — 깨진 아이콘이나 빈 칸을 남기면 띠가 끊겨 보인다.
+ * 모든 사진이 실패하면 섹션 제목만 남지만, 그건 이미지 호스트 장애 같은 드문 경우라 따로 숨기지 않는다.
+ */
+function GalleryShot({ url }: { url: string }) {
+  const { failed, imgProps } = useImageFailed(url);
+  if (failed) return null;
+
+  return (
+    <figure className="gshot">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img {...imgProps} src={url} alt="" loading="lazy" />
+    </figure>
+  );
 }

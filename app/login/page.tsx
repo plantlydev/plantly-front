@@ -16,7 +16,7 @@ import { safeNext, socialLoginErrorMessage, startSocialLogin } from "@/lib/socia
 const LOCAL_LOGIN = process.env.NEXT_PUBLIC_LOCAL_LOGIN === "true";
 
 /**
- * 로그인 화면. 기본은 네이버 로그인 버튼 하나다(흐름은 lib/socialLogin.ts).
+ * 로그인 화면. 기본은 소셜 로그인 버튼 두 개(네이버·Google)다(흐름은 lib/socialLogin.ts).
  *
  * 소셜 로그인이 실패하면 백엔드가 `/login?error={코드}` 로 돌려보낸다 — 코드별 안내를 위에 띄운다.
  *
@@ -64,27 +64,68 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
         )}
 
         {/*
-          페이지째 이동한다(fetch 가 아니다). 네이버 공식 색(#03C75A)과 흰 글자.
+          두 버튼 모두 페이지째 이동한다(fetch 가 아니다).
           처음 온 사람도 같은 버튼이다 — 백엔드가 가입 화면(/signup/social)으로 이어 준다.
+          ?next= 가 없으면(소셜 로그인이 실패해 ?error= 로 돌아온 경우 등) 출발할 때 적어 둔 값을 그대로 이어 쓴다.
         */}
-        <button
-          type="button"
-          // ?next= 가 없으면(소셜 로그인이 실패해 ?error= 로 돌아온 경우 등) 출발할 때 적어 둔 값을 그대로 이어 쓴다.
-          onClick={() => startSocialLogin("NAVER", nextParam)}
-          className="mt-6 flex h-[44px] w-full items-center justify-center gap-2 rounded bg-[#03C75A] text-[15px] font-semibold text-white hover:bg-[#02b350]"
-        >
-          <span aria-hidden className="text-[17px] font-black leading-none">
-            N
-          </span>
-          네이버로 시작하기
-        </button>
+        <div className="mt-6 flex flex-col gap-2.5">
+          {/* 네이버 공식 색(#03C75A)과 흰 글자. */}
+          <button
+            type="button"
+            onClick={() => startSocialLogin("NAVER", nextParam)}
+            className="flex h-[44px] w-full items-center justify-center gap-2 rounded bg-[#03C75A] text-[15px] font-semibold text-white hover:bg-[#02b350]"
+          >
+            <span aria-hidden className="text-[17px] font-black leading-none">
+              N
+            </span>
+            네이버로 시작하기
+          </button>
+
+          {/*
+            Google 브랜딩 가이드(Sign in with Google)를 따른다 — 흰 배경·회색 테두리(#747775)·짙은 글자(#1F1F1F),
+            왼쪽에 원래 색 그대로의 G 로고. 로고 색·비율은 바꾸지 않는다(동의 화면 게시 심사에서 볼 수 있다).
+            문구는 가이드의 "Continue with Google" 한국어판이다.
+          */}
+          <button
+            type="button"
+            onClick={() => startSocialLogin("GOOGLE", nextParam)}
+            className="flex h-[44px] w-full items-center justify-center gap-2.5 rounded border border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] hover:bg-[#F7F8F8]"
+          >
+            <GoogleLogo />
+            Google로 계속하기
+          </button>
+        </div>
         <p className="mt-3 text-[12px] text-faint">
-          처음이시면 네이버 로그인 후 약관 동의 화면으로 이어져 바로 가입됩니다.
+          처음이시면 로그인 후 약관 동의 화면으로 이어져 바로 가입됩니다.
         </p>
 
         {LOCAL_LOGIN && <LocalLoginForm target={target} />}
       </div>
     </div>
+  );
+}
+
+/** Google 표준 G 로고(4색). 브랜딩 가이드가 정한 모양 그대로다 — 색이나 비율을 바꾸지 않는다. */
+function GoogleLogo() {
+  return (
+    <svg aria-hidden width="18" height="18" viewBox="0 0 48 48">
+      <path
+        fill="#EA4335"
+        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+      />
+      <path
+        fill="#4285F4"
+        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+      />
+    </svg>
   );
 }
 

@@ -16,16 +16,16 @@ const CONSENT_LABELS: Record<ConsentType, string> = {
   MARKETING: "광고성 정보 수신 동의",
 };
 
-const PROVIDER_LABELS: Record<string, string> = { NAVER: "네이버", GOOGLE: "구글" };
+const PROVIDER_LABELS: Record<string, string> = { NAVER: "네이버", GOOGLE: "Google" };
 
 /**
- * 소셜 가입 화면. 네이버 로그인을 했는데 연결된 회원이 없으면 백엔드가 여기로 보낸다(lib/socialLogin.ts).
+ * 소셜 가입 화면. 네이버·Google 로그인을 했는데 연결된 회원이 없으면 백엔드가 여기로 보낸다(lib/socialLogin.ts).
  *
  * 이 화면은 로그인 상태가 아니다. 근거는 백엔드 세션의 "가입 대기 정보"(10분)이고, 없거나 만료되면
- * API 가 401 `SIGNUP_SESSION_EXPIRED` 를 준다 — 그때는 로그인 화면으로 보내 네이버 로그인부터 다시 하게 한다.
+ * API 가 401 `SIGNUP_SESSION_EXPIRED` 를 준다 — 그때는 로그인 화면으로 보내 소셜 로그인부터 다시 하게 한다.
  *
- * 가입 API 는 로그인시키지 않는다. 성공하면 응답의 loginUrl(/oauth2/authorization/naver)로 페이지째 이동하고,
- * 네이버에 이미 동의한 상태라 바로 돌아오면서 이번엔 로그인된다. 출발 전 화면(next)도 그때 이어진다.
+ * 가입 API 는 로그인시키지 않는다. 성공하면 응답의 loginUrl(/oauth2/authorization/{naver|google})로 페이지째 이동하고,
+ * 제공자에 이미 동의한 상태라 바로 돌아오면서 이번엔 로그인된다. 출발 전 화면(next)도 그때 이어진다.
  */
 export default function SocialSignupPage() {
   const router = useRouter();

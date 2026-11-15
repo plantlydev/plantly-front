@@ -3,16 +3,16 @@
  *
  * 소셜 로그인은 fetch 가 아니라 **브라우저가 페이지째 이동**하는 흐름이다.
  *
- *   [네이버로 시작] → /oauth2/authorization/naver (백엔드, next.config 프록시)
- *     → 네이버 로그인·동의 → /login/oauth2/code/naver (백엔드 콜백)
+ *   [네이버로 시작 / Google로 계속하기] → /oauth2/authorization/{naver|google} (백엔드, next.config 프록시)
+ *     → 제공자 로그인·동의 → /login/oauth2/code/{naver|google} (백엔드 콜백)
  *     → 백엔드가 판정해서 프론트 화면으로 302:
  *        연결된 회원      → /                    (로그인 완료)
- *        처음 온 사람     → /signup/social       (가입 화면 → 가입 후 다시 /oauth2/authorization/naver)
+ *        처음 온 사람     → /signup/social       (가입 화면 → 가입 후 같은 제공자로 다시 /oauth2/authorization/…)
  *        그 밖           → /login?error={코드}
  *
  * 백엔드는 로그인 성공 뒤 항상 `/` 로 보낸다. "원래 보던 화면으로 돌아가기(next)"는 프론트가 한다 —
  * 출발할 때 sessionStorage 에 적어 두고, 로그인된 채 `/` 에 도착하면 꺼내서 이동한다(SocialLoginLanding).
- * sessionStorage 는 탭 단위라 네이버를 다녀오고 가입 화면을 거쳐도 같은 탭이면 남아 있다.
+ * sessionStorage 는 탭 단위라 제공자 화면을 다녀오고 가입 화면을 거쳐도 같은 탭이면 남아 있다.
  */
 
 import type { SocialProvider } from "@/types/api";
@@ -93,9 +93,12 @@ export function safeNext(value: string | null | undefined): string {
  */
 const ERROR_MESSAGES: Record<string, string> = {
   ACCOUNT_SUSPENDED: "이용이 제한된 계정입니다. 문의가 필요하면 고객센터로 연락해 주세요.",
-  EMAIL_IN_USE: "같은 이메일로 가입된 계정이 이미 있습니다. 처음 가입한 방법으로 로그인해 주세요.",
-  SIGNUP_SESSION_EXPIRED: "가입 가능 시간이 지났습니다. 네이버 로그인부터 다시 진행해 주세요.",
-  SOCIAL_LOGIN_FAILED: "네이버 로그인을 마치지 못했습니다. 다시 시도해 주세요.",
+  // 네이버로 가입한 이메일로 Google 로그인(또는 그 반대)을 하면 온다. 계정 연결 기능은 아직 없다.
+  EMAIL_IN_USE:
+    "이 이메일로 이미 가입된 계정이 있습니다. 네이버·Google 중 처음 가입한 방법으로 로그인해 주세요.",
+  SIGNUP_SESSION_EXPIRED: "가입 가능 시간이 지났습니다. 소셜 로그인부터 다시 진행해 주세요.",
+  // Google 이메일이 확인되지 않은 계정도 이 코드로 온다(드문 경우라 따로 나누지 않았다).
+  SOCIAL_LOGIN_FAILED: "로그인을 마치지 못했습니다. 다시 시도해 주세요.",
 };
 
 export function socialLoginErrorMessage(code: string): string {

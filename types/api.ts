@@ -78,12 +78,50 @@ export type LoginResponse = {
 export type ProfileResponse = {
   email: string;
   name: string;
-  nickname: string;
-  phone: string;
+  /** 소셜 가입자는 닉네임을 정하지 않아 null 이다 */
+  nickname: string | null;
+  /** 소셜 가입자는 null 이다(네이버는 휴대폰을 받지 않는다) */
+  phone: string | null;
   userStatus: UserStatus;
   /** 관리자 메뉴를 보일지 정하는 근거. 접근 제어 자체는 서버가 한다(관리자 API 는 MEMBER 에게 403) */
   userRole: UserRole;
   createdAt: string; // ISO-8601 LocalDateTime
+};
+
+// ===== 소셜 가입 =====
+
+export type SocialProvider = "NAVER" | "GOOGLE";
+
+/** 가입 동의 항목. 상수 이름이 계약이다 — 받은 type 을 그대로 agreements 에 담아 돌려보낸다 */
+export type ConsentType = "AGE_OVER_14" | "TERMS_OF_SERVICE" | "PRIVACY_COLLECTION" | "MARKETING";
+
+export type ConsentTerm = {
+  type: ConsentType;
+  /** 필수 항목에 모두 동의해야 가입된다 */
+  required: boolean;
+  /** 현재 약관 버전(동의 기록에 남는다) */
+  version: string;
+};
+
+/** GET /auth/social/pending — 세션에 가입 대기 정보가 있을 때만 200, 없거나 만료면 401 SIGNUP_SESSION_EXPIRED */
+export type PendingSocialSignup = {
+  provider: SocialProvider;
+  email: string;
+  /** null 이면 제공자가 이름을 주지 않았다 — 가입 화면에서 입력받는다 */
+  name: string | null;
+  /** 배열 순서가 화면 표시 순서다 */
+  consents: ConsentTerm[];
+};
+
+export type SocialSignupRequest = {
+  agreements: ConsentType[];
+  /** pending.name 이 null 일 때만 보낸다(2~30자, 한글·영문) */
+  name?: string;
+};
+
+export type SocialSignupResponse = {
+  /** 가입 뒤 브라우저를 이동시킬 재인가 주소. 가입 API 는 로그인시키지 않는다 */
+  loginUrl: string;
 };
 
 // ===== 회사 카드(목록/검색 결과 1건) =====

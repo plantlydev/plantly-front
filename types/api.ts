@@ -80,7 +80,7 @@ export type ProfileResponse = {
   name: string;
   /** 소셜 가입자는 닉네임을 정하지 않아 null 이다 */
   nickname: string | null;
-  /** 소셜 가입자는 null 이다(네이버는 휴대폰을 받지 않는다) */
+  /** 소셜 가입자는 null 이다(네이버·Google 모두 휴대폰을 받지 않는다) */
   phone: string | null;
   userStatus: UserStatus;
   /** 관리자 메뉴를 보일지 정하는 근거. 접근 제어 자체는 서버가 한다(관리자 API 는 MEMBER 에게 403) */

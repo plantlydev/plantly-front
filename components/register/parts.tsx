@@ -9,6 +9,7 @@ import { createContext, useCallback, useContext, useRef, useState } from "react"
 import { AlertCircleIcon, CloseIcon } from "@/components/icons";
 import { ApiError } from "@/lib/api";
 import { formatBytes, uploadImage } from "@/lib/meta";
+import { useImageFailed } from "@/lib/useImageFailed";
 import type { UploadConstraintsResponse } from "@/types/api";
 
 /** 칸 머리: 라벨 · 필수 별표 · 글자 수(또는 개수). max 를 모르면(제약 조회 전) 숫자를 빼고 그린다 */
@@ -384,4 +385,43 @@ export function LocalPreview({ file, className, alt = "" }: { file: File; classN
   );
   // eslint-disable-next-line @next/next/no-img-element
   return <img ref={attach} alt={alt} className={className} />;
+}
+
+/**
+ * 이미 저장된(업로드가 끝난) 이미지 미리보기. 불러오지 못하면 깨진 아이콘 대신 안내를 그린다.
+ * 등록·수정 화면에서는 대체 표시로 조용히 넘기지 않는다 — 수정 화면에서 예전에 올린 파일이 사라졌다면
+ * 작성자가 알아채고 바꾸거나 지울 수 있어야 하기 때문이다. 옆의 교체·삭제 버튼은 그대로 쓸 수 있다.
+ */
+export function StoredImage({
+  url,
+  alt,
+  className = "",
+  draggable,
+}: {
+  url: string;
+  alt: string;
+  className?: string;
+  draggable?: boolean;
+}) {
+  const { failed, imgProps } = useImageFailed(url);
+
+  if (failed) {
+    return (
+      <div
+        role="img"
+        aria-label={`${alt || "이미지"}를 불러오지 못했습니다`}
+        className={`flex size-full flex-col items-center justify-center gap-1 bg-danger-soft p-1.5 text-center text-[11px] leading-[1.35] text-danger-ink ${className}`}
+      >
+        <AlertCircleIcon size={14} />
+        <span>
+          이미지를
+          <br />
+          불러오지 못했습니다
+        </span>
+      </div>
+    );
+  }
+
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img {...imgProps} src={url} alt={alt} className={className} draggable={draggable} />;
 }

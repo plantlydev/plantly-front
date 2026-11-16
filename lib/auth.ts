@@ -11,7 +11,8 @@ import { api, request, resetCsrf } from "@/lib/api";
 import type { LoginRequest, LoginResponse, ProfileResponse } from "@/types/api";
 
 /**
- * 로그인. 성공하면 세션 쿠키(JSESSIONID)가 심기고, `remember` 면 30일 쿠키가 하나 더 붙는다.
+ * 로그인. 성공하면 세션 쿠키(JSESSIONID)가 심긴다. remember-me 는 서버에서 껐으므로
+ * 로그인 유지는 세션 유휴 만료(1일)가 맡는다 — 브라우저를 닫으면 끝난다.
  *
  * 실패는 상태 코드로 갈린다 — 401 은 이메일/비밀번호 불일치, 403 은 정지·탈퇴 계정,
  * 400 은 형식 위반(비밀번호 길이·특수문자). **셋 다 `ApiError.message` 에 서버가 쓴
@@ -35,7 +36,7 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
 
 /**
  * 로그아웃. 컨트롤러가 아니라 Spring Security 의 LogoutFilter 가 받는다(그래서 백엔드에 메서드가 없다).
- * 세션 무효화 + JSESSIONID·remember-me 쿠키 제거까지 서버가 하고, 본문 없는 200 을 준다.
+ * 세션 무효화 + JSESSIONID 쿠키 제거까지 서버가 하고(예전에 발급된 remember-me 쿠키도 같이 지운다), 본문 없는 200 을 준다.
  */
 export async function logout(): Promise<void> {
   await api.post<void>("/auth/logout");

@@ -26,7 +26,6 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -37,7 +36,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
     setError("");
     setSubmitting(true);
     try {
-      await login({ email, password, remember });
+      await login({ email, password });
       // 헤더가 곧바로 이름을 보여주도록 세션을 다시 읽는다. 이동보다 먼저 해야 새 화면이 옛 상태로 그려지지 않는다.
       await session.refresh();
       // replace 라서 뒤로 가기를 눌러도 로그인 화면으로 돌아오지 않는다.
@@ -111,20 +110,6 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
               required
             />
           </div>
-
-          {/*
-            remember=true 면 서버가 30일 remember-me 쿠키를 하나 더 발급한다(세션 쿠키와 별개).
-            기본값은 꺼짐 — 공용 PC 에서 무심코 켜지는 쪽보다 안전하다.
-          */}
-          <label className="flex w-fit items-center gap-2 text-[13px] text-muted">
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-              className="accent-brand"
-            />
-            로그인 상태 유지 (30일)
-          </label>
 
           {/* 서버가 준 문장을 그대로 보여준다. role="alert" 라 스크린리더가 바뀐 순간 읽는다. */}
           {error && (

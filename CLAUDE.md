@@ -59,12 +59,13 @@ npm run dev        # http://localhost:3000
 | 동작 | 요청 |
 | --- | --- |
 | 회원가입 | `POST /api/v1/users/sign-up` |
-| 로그인 | `POST /api/v1/auth/login` `{ email, password, remember }` |
+| 로그인 | `POST /api/v1/auth/login` `{ email, password }` |
 | 로그아웃 | `POST /api/v1/auth/logout` |
 | 내 프로필 | `GET /api/v1/users/me` |
 
 - 비밀번호는 **10~60자 + 특수문자 1개 이상**(백엔드 검증). 시드 계정 공통 비밀번호는 `Password1!`.
-- `remember: true` 면 30일 remember-me 쿠키가 추가로 발급된다.
+- remember-me 는 백엔드에서 껐다(첫 배포는 소셜 로그인 전용). 로그인 유지는 세션 유휴 만료 1일이 맡고,
+  브라우저를 닫거나 서버가 재시작되면 다시 로그인해야 한다. 요청에 `remember` 를 보내도 무시된다.
 - **GET 외 모든 요청에 CSRF 헤더가 필요하다.** `lib/api.ts` 가 `GET /api/v1/auth/csrf` 로 토큰을 받아 캐시하고
   `X-XSRF-TOKEN` 으로 보낸다. 로그인·로그아웃 직후에는 세션이 바뀌므로 `resetCsrf()` 를 호출한다
   (`lib/auth.ts` 가 이미 하고 있다 — 서버가 세션 고정 공격을 막으려고 인증 직후 세션 ID를 갈아 끼운다).

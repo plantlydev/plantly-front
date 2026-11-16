@@ -64,8 +64,8 @@ export type LoginRequest = {
   email: string;
   /** 최소 10자, 특수문자 1개 이상 (백엔드 @Pattern) */
   password: string;
-  /** true 면 30일 remember-me 쿠키 발급 */
-  remember: boolean;
+  // remember 는 보내지 않는다. 백엔드가 remember-me 를 꺼서 받기만 하고 무시하며(boolean 기본값 false),
+  // 로그인 유지는 세션 유휴 만료(1일)가 맡는다.
 };
 
 export type LoginResponse = {

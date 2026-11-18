@@ -97,6 +97,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   EMAIL_IN_USE:
     "이 이메일로 이미 가입된 계정이 있습니다. 네이버·Google 중 처음 가입한 방법으로 로그인해 주세요.",
   SIGNUP_SESSION_EXPIRED: "가입 가능 시간이 지났습니다. 소셜 로그인부터 다시 진행해 주세요.",
+  // 회원 탈퇴 본인 확인을 다른 회원의 소셜 계정으로 했다. 백엔드가 탈퇴하지 않고 로그아웃시킨 뒤 보낸다(lib/withdrawal.ts).
+  WITHDRAWAL_REAUTH_MISMATCH:
+    "탈퇴를 요청한 계정과 다른 계정으로 확인되어 탈퇴하지 않았고, 안전을 위해 로그아웃했습니다. 탈퇴하려면 가입한 계정으로 다시 로그인해 주세요.",
   // Google 이메일이 확인되지 않은 계정도 이 코드로 온다(드문 경우라 따로 나누지 않았다).
   SOCIAL_LOGIN_FAILED: "로그인을 마치지 못했습니다. 다시 시도해 주세요.",
 };

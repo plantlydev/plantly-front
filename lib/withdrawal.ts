@@ -59,7 +59,7 @@ export function withdrawalErrorMessage(code: string): string {
  */
 export const PROVIDER_CONNECTIONS: Record<SocialProvider, { url: string; path: string }> = {
   NAVER: {
-    url: "https://nid.naver.com/internalToken/view/tokenList/form",
+    url: "https://nid.naver.com/internalToken/view/tokenList/pc/ko",
     path: "네이버ID › 이력관리 › 연결된 서비스 관리",
   },
   GOOGLE: {

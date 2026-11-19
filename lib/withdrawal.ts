@@ -5,8 +5,9 @@
  *
  *   [탈퇴 화면] GET  /users/me/withdrawal  → 함께 지워질 기업·초안 수, 본인 확인 제공자
  *   [탈퇴 버튼] POST /users/me/withdrawal  → 백엔드가 세션에 "탈퇴 의도"를 적고(10분, 1회용) reauthUrl 을 준다
- *              → 브라우저를 reauthUrl(/oauth2/authorization/{naver|google})로 페이지째 이동
- *              → 제공자 확인 → 백엔드 콜백이 판정해서 프론트 화면으로 302:
+ *              → 브라우저를 reauthUrl(/oauth2/authorization/{naver|google}?withdrawal={1회용 난수})로 페이지째 이동
+ *                (난수는 그대로 넘기기만 한다 — 이 인가 요청의 콜백만 탈퇴로 처리하게 백엔드가 묶는 표시다)
+ *              → 제공자 확인(네이버: 비밀번호 재입력 / Google: 계정 선택) → 백엔드 콜백이 판정해서 프론트 화면으로 302:
  *                  같은 회원      → /withdrawn                 (탈퇴 완료, 로그아웃됨)
  *                                   /withdrawn?unlinkFailed=NAVER  (탈퇴는 됐고 제공자 연동 해제만 실패)
  *                  다른 회원 계정 → /login?error=WITHDRAWAL_REAUTH_MISMATCH  (탈퇴 안 함, 로그아웃됨)
@@ -53,16 +54,17 @@ export function withdrawalErrorMessage(code: string): string {
 /**
  * 연동 해제가 실패했을 때 사용자가 직접 끊을 수 있는 제공자 설정 화면.
  * 탈퇴는 이미 끝났고, 제공자 쪽에 "Plantly 에 정보 제공 동의"가 남아 있을 뿐이다(우리 쪽에 남은 개인정보는 없다).
- * 주소·메뉴 이름은 제공자가 바꿀 수 있다 — 실제 키 확인(탈퇴 5단계) 때 열어 보고 맞춘다.
+ * 메뉴 경로는 2026-11-19 실제 키 확인(탈퇴 5단계)에서 연동 해제 뒤 목록에서 사라지는 것을 본 화면이다.
+ * 제공자가 메뉴를 바꿀 수 있으니 안내가 어긋난다는 문의가 오면 다시 열어 보고 맞춘다.
  */
 export const PROVIDER_CONNECTIONS: Record<SocialProvider, { url: string; path: string }> = {
   NAVER: {
     url: "https://nid.naver.com/internalToken/view/tokenList/form",
-    path: "네이버 내정보의 연결된 서비스 관리",
+    path: "네이버ID › 이력관리 › 연결된 서비스 관리",
   },
   GOOGLE: {
     url: "https://myaccount.google.com/connections",
-    path: "Google 계정의 서드 파티 연결",
+    path: "Google 계정 › 연결된 앱",
   },
 };
 

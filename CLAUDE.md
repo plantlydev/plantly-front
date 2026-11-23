@@ -66,6 +66,8 @@ npm run dev        # http://localhost:3000
 | 소셜 가입 | `POST /api/v1/auth/social/signup` `{ agreements, name? }` → `{ loginUrl }` |
 | 로그아웃 | `POST /api/v1/auth/logout` |
 | 내 프로필 | `GET /api/v1/users/me` (소셜 가입자는 `phone`·`nickname` 이 null) |
+| 탈퇴 확인 정보 | `GET /api/v1/users/me/withdrawal` → `{ ownedCompanyCount, draftCount, provider }` (탈퇴 불가 회원은 403) |
+| 탈퇴 시작 | `POST /api/v1/users/me/withdrawal` → `{ reauthUrl }` — 아직 탈퇴 안 됨, 이 주소로 페이지째 이동 |
 | (로컬 전용) 로그인 | `POST /api/v1/auth/login` `{ email, password }` |
 | (로컬 전용) 회원가입 | `POST /api/v1/users/sign-up` |
 
@@ -79,6 +81,11 @@ npm run dev        # http://localhost:3000
    - 그 밖 → `/login?error={ACCOUNT_SUSPENDED|EMAIL_IN_USE|SOCIAL_LOGIN_FAILED}` (가입 화면 만료는 `SIGNUP_SESSION_EXPIRED`)
 3. 로컬에서 네이버까지 실제로 돌리려면 백엔드에 `NAVER_CLIENT_ID`/`NAVER_CLIENT_SECRET` 환경변수가 있어야 하고,
    네이버 개발자센터 Callback URL 에 `http://localhost:3000/login/oauth2/code/naver` 가 등록돼 있어야 한다.
+
+**회원 탈퇴 흐름** (`lib/withdrawal.ts` 주석에 자세히): 헤더 이름 → `/account` → `/account/withdraw`(확인) →
+[확인 후 탈퇴] → 소셜 본인 확인(재인가) → 백엔드 콜백이 탈퇴하고 로그아웃시킨 뒤 `/withdrawn` 으로 보낸다.
+제공자 연동 해제가 실패하면 `/withdrawn?unlinkFailed=NAVER` 로 와서 직접 해제하는 방법을 안내한다(백엔드는 재시도하지 않는다).
+확인이 실패하면 `/account/withdraw?error={코드}`(로그인 유지), 다른 회원 계정으로 확인하면 `/login?error=WITHDRAWAL_REAUTH_MISMATCH`(로그아웃됨).
 
 **이메일 로그인 폼은 로컬 개발 전용이다.** `.env.local` 에 `NEXT_PUBLIC_LOCAL_LOGIN=true` 가 있을 때만 로그인 화면에
 보인다(빌드할 때 값이 박힌다 — 운영 빌드에는 넣지 않는다. `.env*` 는 gitignore 라 PC 마다 직접 만든다).

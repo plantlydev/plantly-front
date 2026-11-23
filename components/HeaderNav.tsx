@@ -94,9 +94,16 @@ export default function HeaderNav() {
             <OfficeIcon size={15} />
             <span className="hidden sm:inline">내 기업</span>
           </Link>
-          <span className="hidden max-w-[140px] truncate text-sm text-ink sm:inline">
+          {/* 이름을 누르면 내 계정(회원 탈퇴 입구)으로 간다. */}
+          <Link
+            href="/account"
+            aria-current={pathname.startsWith("/account") ? "page" : undefined}
+            className={`hidden max-w-[140px] truncate text-sm no-underline sm:inline ${
+              pathname.startsWith("/account") ? "font-medium text-brand" : "text-ink hover:text-brand"
+            }`}
+          >
             {user.name}
-          </span>
+          </Link>
           <button type="button" className="btn btn-secondary" onClick={onLogout} disabled={busy}>
             로그아웃
           </button>

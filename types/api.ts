@@ -124,6 +124,23 @@ export type SocialSignupResponse = {
   loginUrl: string;
 };
 
+// ===== 회원 탈퇴 =====
+
+/** GET /users/me/withdrawal — 탈퇴 확인 화면에 보여 줄 것 */
+export type WithdrawalPreview = {
+  /** 함께 삭제될 등록 기업 수(이미 삭제한 기업은 세지 않는다) */
+  ownedCompanyCount: number;
+  /** 함께 삭제될 임시저장 초안 수 */
+  draftCount: number;
+  /** 본인 확인에 쓸 소셜 제공자 */
+  provider: SocialProvider;
+};
+
+/** POST /users/me/withdrawal — 탈퇴는 아직 안 됐다. 이 주소로 페이지째 이동해 본인 확인을 마치면 그때 탈퇴된다 */
+export type WithdrawalStartResponse = {
+  reauthUrl: string;
+};
+
 // ===== 회사 카드(목록/검색 결과 1건) =====
 
 export type CompanySummary = {

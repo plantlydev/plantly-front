@@ -7,6 +7,7 @@ import CompanyDetailView, {
   copyLink,
   externalHref,
   inquiryOf,
+  loginHrefFor,
 } from "@/components/CompanyDetailView";
 import LikeFavorite from "@/components/LikeFavorite";
 import { ShareIcon } from "@/components/icons";
@@ -91,6 +92,9 @@ export default function CompanyDetailPage({ params }: PageProps<"/companies/[id]
   }
 
   const inquiry = inquiryOf(company);
+  // 담당자는 있는데 비로그인이라 가려진 경우. 문의 버튼을 끄지 않고 로그인으로 이끈다 —
+  // 꺼 두면 "연락처가 없는 회사"와 구분되지 않는다.
+  const loginHref = !inquiry && company.contactLoginRequired ? loginHrefFor(company) : null;
 
   return (
     <CompanyDetailView
@@ -103,6 +107,10 @@ export default function CompanyDetailPage({ params }: PageProps<"/companies/[id]
             <a href={inquiry.href} className="btn btn-primary w-full py-[11px] text-[15px]">
               문의하기
             </a>
+          ) : loginHref ? (
+            <Link href={loginHref} className="btn btn-primary w-full py-[11px] text-[15px]">
+              로그인하고 문의하기
+            </Link>
           ) : (
             <button type="button" disabled className="btn btn-primary w-full py-[11px] text-[15px]">
               문의하기
@@ -137,15 +145,24 @@ export default function CompanyDetailPage({ params }: PageProps<"/companies/[id]
           </div>
 
           <p className="mt-0.5 text-[12px] leading-[1.5] text-white/45">
-            {inquiry?.note ?? "등록된 담당자 연락처가 없어 문의를 보낼 수 없습니다."}
+            {inquiry?.note ??
+              (loginHref
+                ? "담당자 연락처는 로그인한 회원에게만 공개됩니다."
+                : "등록된 담당자 연락처가 없어 문의를 보낼 수 없습니다.")}
           </p>
         </>
       }
       contactAction={
-        inquiry && (
+        inquiry ? (
           <a href={inquiry.href} className="btn btn-primary w-full py-2.5">
             문의하기
           </a>
+        ) : (
+          loginHref && (
+            <Link href={loginHref} className="btn btn-primary w-full py-2.5">
+              로그인하고 연락처 보기
+            </Link>
+          )
         )
       }
     />

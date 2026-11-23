@@ -54,7 +54,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
       <div className="mx-auto w-full max-w-[380px]">
         <h1 className="text-[26px] leading-tight">로그인</h1>
         <p className="mt-2 text-[13px] text-muted">
-          좋아요·즐겨찾기와 기업정보 등록은 로그인 후 사용할 수 있습니다.
+          담당자 연락처 확인, 좋아요·즐겨찾기와 기업정보 등록은 로그인 후 사용할 수 있습니다.
         </p>
 
         {socialError && (

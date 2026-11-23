@@ -5,7 +5,7 @@ import { Fragment } from "react";
 import Cover from "@/components/Cover";
 import DetailTabs, { type DetailTab, TAB_BAR_HEIGHT } from "@/components/DetailTabs";
 import Logo from "@/components/Logo";
-import { FactoryIcon, PinIcon, PlayIcon, VerifiedIcon } from "@/components/icons";
+import { FactoryIcon, LockIcon, PinIcon, PlayIcon, VerifiedIcon } from "@/components/icons";
 import {
   CERTIFICATION_TYPE_LABEL,
   CERTIFICATION_TYPE_ORDER,
@@ -39,7 +39,10 @@ type Props = {
   notice?: React.ReactNode;
   /** 사이드바 맨 위 카드(소유자 상세의 관리 정보) */
   sidebarTop?: React.ReactNode;
-  /** 대표 연락처 카드 아래 버튼. 공개 상세는 "문의하기" */
+  /**
+   * 대표 연락처 카드 아래 버튼. 공개 상세는 "문의하기", 연락처가 가려진 비로그인 화면은
+   * "로그인하고 연락처 보기"다(가린 카드에도 같은 자리로 붙는다).
+   */
   contactAction?: React.ReactNode;
 };
 
@@ -453,12 +456,8 @@ export default function CompanyDetailView({
             </div>
           </div>
 
-          {contact && (
-            <div className="blueprint flex flex-col gap-3 bg-white p-5">
-              <div className="flex items-baseline justify-between">
-                <h2 className="text-[18px]">대표 연락처</h2>
-                <span className="kick">Contact</span>
-              </div>
+          {contact ? (
+            <ContactCard action={contactAction}>
               <div>
                 <div className="srow">
                   <span className="skey">담당자</span>
@@ -487,8 +486,37 @@ export default function CompanyDetailView({
                   </div>
                 )}
               </div>
-              {contactAction}
-            </div>
+            </ContactCard>
+          ) : (
+            /*
+              담당자가 있지만 비로그인이라 서버가 비워 보낸 경우. 카드를 빼면 "연락처가 없는 회사"처럼
+              보이므로, 같은 자리에 같은 카드를 세우고 값만 가린 뒤 로그인으로 이끈다.
+              가린 값은 서버가 준 게 아니라 화면에 박아 둔 자리표시다(실제 값은 애초에 내려오지 않는다).
+            */
+            company.contactLoginRequired && (
+              <ContactCard action={contactAction}>
+                <div className="relative">
+                  <div aria-hidden className="pointer-events-none select-none">
+                    {MASKED_CONTACT_ROWS.map((row) => (
+                      <div key={row.key} className="srow">
+                        <span className="skey">{row.key}</span>
+                        <span className="sval blur-[5px]">{row.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-white/55 text-center">
+                    <span className="grid size-[34px] place-items-center rounded-full bg-brand-soft text-brand-700">
+                      <LockIcon size={17} />
+                    </span>
+                    <p className="text-[13px] leading-[1.5] text-brand-800">
+                      담당자 연락처는
+                      <br />
+                      로그인한 회원에게만 공개됩니다
+                    </p>
+                  </div>
+                </div>
+              </ContactCard>
+            )
           )}
 
           {company.asInfo && (
@@ -615,6 +643,30 @@ function ChipCard({ kicker, title, items }: { kicker: string; title: string; ite
   );
 }
 
+/** 사이드바의 "대표 연락처" 카드 틀. 값이 보이는 카드와 가린 카드가 같은 모양이어야 해서 묶었다. */
+function ContactCard({ action, children }: { action?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="blueprint flex flex-col gap-3 bg-white p-5">
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-[18px]">대표 연락처</h2>
+        <span className="kick">Contact</span>
+      </div>
+      {children}
+      {action}
+    </div>
+  );
+}
+
+/**
+ * 가린 연락처 카드의 자리표시 줄. 흐리게 그려 "여기에 값이 있다"만 보이게 한다.
+ * 실제 담당자에 직함이 없을 수 있어도 줄 수는 고정한다 — 줄 수로 무엇이 등록됐는지 드러낼 이유가 없다.
+ */
+const MASKED_CONTACT_ROWS = [
+  { key: "담당자", value: "홍길동" },
+  { key: "전화", value: "010-0000-0000" },
+  { key: "이메일", value: "contact@plantly.kr" },
+];
+
 /**
  * 축을 한 번 더 나눠 담는 카드(인증 type, 국내/해외).
  * children 은 `라벨 + 칩 묶음`이 번갈아 오는 격자 칸이라 호출부가 짝으로 넣는다.
@@ -698,6 +750,9 @@ export function externalHref(url: string): string {
  * 원본 디자인의 "문의하기"는 플랜틀리가 중개하는 문의(영업일 1일 내 회신)인데 그런 API 가 없다.
  * 버튼을 지우는 대신 등록된 담당자 연락처로 바로 연결한다 — 메일이 있으면 메일, 없으면 전화다.
  * 공개 상세만 쓴다(소유자가 자기 회사에 문의할 일은 없다).
+ *
+ * 비로그인이라 연락처가 가려진 회사도 여기서는 null 이다 — 그 경우는 호출부가
+ * `company.contactLoginRequired` 로 갈라 로그인으로 이끈다(`loginHrefFor`).
  */
 export function inquiryOf(company: CompanyPublicResponse) {
   const contact = company.representativeContact;
@@ -710,6 +765,14 @@ export function inquiryOf(company: CompanyPublicResponse) {
     : contact?.phone
       ? { href: `tel:${contact.phone}`, note: `담당자 전화(${contact.phone})로 연결됩니다.` }
       : null;
+}
+
+/**
+ * 로그인하고 이 회사 상세로 돌아오는 주소. 팝업 창 안에서 눌러도 같은 창에서 로그인이 진행되고,
+ * 창 이름이 그대로라 돌아왔을 때 팝업 모양(상단바 감춤)도 그대로다.
+ */
+export function loginHrefFor(company: CompanyPublicResponse): string {
+  return `/login?next=${encodeURIComponent(`/companies/${company.id}`)}`;
 }
 
 /**

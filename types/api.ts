@@ -344,8 +344,17 @@ export type CompanyPublicResponse = {
   likedByMe: boolean;
   favoritedByMe: boolean;
 
-  /** 대표 1건만. 없으면 null */
+  /**
+   * 대표 1건만. 없으면 null.
+   * 비로그인 뷰어에게는 담당자가 있어도 null 이다 — 그때는 contactLoginRequired 가 true 로 온다.
+   */
   representativeContact: ContactResponse | null;
+  /**
+   * 담당자 연락처가 **있지만** 로그인해야 볼 수 있어서 비웠다는 표시.
+   * null 인 representativeContact 가 "담당자 없음"인지 "가려짐"인지를 이것으로 가른다.
+   * 소유자·관리자 상세(profile)에서는 늘 false 다.
+   */
+  contactLoginRequired: boolean;
   galleryImages: GalleryImageResponse[];
   representativeReference: ProjectReferenceResponse | null;
   materialNames: string[];

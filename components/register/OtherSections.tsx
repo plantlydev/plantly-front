@@ -101,6 +101,10 @@ export function ContactSection({ form, update, errors, masters }: SectionProps) 
         />
       </div>
       <ErrorLine message={errors.contacts} />
+      {/* 담당자 본인의 개인 연락처가 들어가는 칸이라, 누구에게 보이는지를 입력하는 자리에서 알린다. */}
+      <p className="text-xs text-faint">
+        담당자 연락처는 로그인한 회원에게만 공개됩니다. 로그인하지 않은 방문자에게는 가려서 보여 줍니다.
+      </p>
     </Section>
   );
 }
